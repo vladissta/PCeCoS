@@ -1,3 +1,5 @@
+![python >= 3.11](https://img.shields.io/badge/python%20%3E=%203.11-blue?style=for-the-badge&logo=python&logoColor=yellow)
+
 [//]: # (# PCeCoS )
 <a href=""><img src="logo.png" width="300" ></a>
 
