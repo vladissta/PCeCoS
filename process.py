@@ -4,7 +4,6 @@ import argparse
 import random
 import numpy as np
 from scripts.Colony import Colony
-from scripts.vizualisation import vizualisation
 from scripts.Matrix import Matrix
 
 parser = argparse.ArgumentParser(description='Primitive Cell Colony Simulator',
@@ -28,6 +27,9 @@ DIVISION_RESOURCE_LEVEL = args.division_level
 colony_colors = ['red', 'green', 'blue',
                  'orange', 'violet', 'yellow']
 
+if not 1 <= COLONIES_NUMBER <= len(colony_colors):
+    parser.error(f'colony-number must be between 1 and {len(colony_colors)}')
+
 resource_matrix = Matrix(MATRIX_SHAPE, RESUPPLY_RATE)
 
 colonies_idxs = np.random.randint(1, resource_matrix.shape, (COLONIES_NUMBER, 2))
@@ -43,5 +45,7 @@ for i, initial_coords in enumerate(colonies_idxs):
                                    DIVISION_RESOURCE_LEVEL))
 
     print(colony_colors[i], consumption_speed)
+
+from scripts.vizualisation import vizualisation
 
 vizualisation(list_of_colonies, resource_matrix, ROUNDS_NUMBER, file_name=args.output)

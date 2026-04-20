@@ -6,8 +6,8 @@ class Colony:
     def __init__(self, initial_coordinates: tuple, color: str, consumption_speed, resource_to_divide):
         self.color = color
         self.cells_number = 1
-        self.list_of_cells_coordinates = [initial_coordinates]
-        self.feed_list = [0.5]
+        self.list_of_cells_coordinates = np.array([initial_coordinates], dtype=int)
+        self.feed_list = np.array([0.5], dtype=float)
         self.feed_rate = consumption_speed
         self.resource_to_divide = resource_to_divide
 
@@ -16,12 +16,13 @@ class Colony:
         surroundings = resource_matrix[(cell_coords[0] - 1):(cell_coords[0] + 2),
                        (cell_coords[1] - 1):(cell_coords[1] + 2)]
         max_surround = surroundings.max()
+        best_coords = np.argwhere(surroundings == max_surround)
+        coords_to_divide = random.choice(best_coords) - 1
 
-        coords_to_divide = random.choice(
-            np.argwhere(surroundings == max_surround) - 1)
-
-        self.feed_list.append(self.feed_list[n_cell] / 2)
-        self.list_of_cells_coordinates.append(cell_coords + coords_to_divide)
+        self.feed_list = np.append(self.feed_list, self.feed_list[n_cell] / 2)
+        self.list_of_cells_coordinates = np.vstack(
+            [self.list_of_cells_coordinates, cell_coords + coords_to_divide]
+        )
         self.feed_list[n_cell] /= 2
         self.cells_number += 1
 
@@ -46,10 +47,11 @@ class Colony:
                 self.cells_number -= 1
                 continue
 
-            max_surround = surroundings[coords_w_food].max()
-
-            idxs_to_eat = random.choice(
-                np.argwhere(surroundings == max_surround) - 1)
+            rows, cols = coords_w_food.T
+            food_values = surroundings[rows, cols]
+            max_surround = food_values.max()
+            best_coords = coords_w_food[food_values == max_surround]
+            idxs_to_eat = random.choice(best_coords) - 1
 
             resource_matrix[*(cell_coords + idxs_to_eat)] -= self.feed_rate
 
@@ -58,6 +60,8 @@ class Colony:
             if self.feed_list[n_cell] >= self.resource_to_divide:
                 self.divide(cell_coords, n_cell, resource_matrix)
 
-        for index in sorted(to_delete_list, reverse=True):
-            del self.list_of_cells_coordinates[index]
-            del self.feed_list[index]
+        if to_delete_list:
+            alive_mask = np.ones(len(self.feed_list), dtype=bool)
+            alive_mask[to_delete_list] = False
+            self.list_of_cells_coordinates = self.list_of_cells_coordinates[alive_mask]
+            self.feed_list = self.feed_list[alive_mask]

@@ -18,3 +18,4 @@ class Matrix:
 
     def resupply(self):
         self.matrix[(self.matrix < 1) & (0 <= self.matrix)] += self.resupply_rate
+        self.matrix[(self.matrix > 1) & (0 <= self.matrix)] = 1

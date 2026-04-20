@@ -1,12 +1,10 @@
-# from Matrix import Matrix
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
+import numpy as np
 import progressbar
 
 
 def vizualisation(list_of_colonies, resource_matrix, rounds_number, file_name):
-    global scats
-
     bar = progressbar.ProgressBar(maxval=rounds_number,
                                   widgets=[progressbar.Bar('=', '[', ']'),
                                            ' ', progressbar.Percentage()])
@@ -17,34 +15,29 @@ def vizualisation(list_of_colonies, resource_matrix, rounds_number, file_name):
     
     ax.axis('off')
     scats = []
+    for colony in list_of_colonies:
+        scats.append(
+            ax.scatter([], [],
+                       color=colony.color,
+                       s=7, marker='o', alpha=0.9)
+        )
  
     bar.start()
 
     def animate(frame):
-        global scats
-        bar.update(frame)
-        
-
-        for scat in scats:
-            scat.remove()
-        scats = []
+        if frame % 5 == 0 or frame == rounds_number - 1:
+            bar.update(frame + 1)
 
         resource_matrix.resupply()
+        im.set_data(resource_matrix.matrix)
 
-        for colony in list_of_colonies:
+        for scat, colony in zip(scats, list_of_colonies):
 
             if colony.cells_number:
-                coords_cells = list(zip(*colony.list_of_cells_coordinates))
-                scats.append(
-                    ax.scatter(coords_cells[1], coords_cells[0],
-                               color=colony.color,
-                               s=7, marker='o', alpha = 0.9))
-
-                ax.imshow(resource_matrix.matrix, alpha=1,
-                        #   norm=norm,
-                          cmap='binary', )
+                scat.set_offsets(colony.list_of_cells_coordinates[:, [1, 0]])
             else:
-                return
+                scat.set_offsets(np.empty((0, 2)))
+                continue
 
             colony.eat(resource_matrix)
 
@@ -58,5 +51,6 @@ def vizualisation(list_of_colonies, resource_matrix, rounds_number, file_name):
 
     # anim.save(__file__+".mp4", writer=writer)
     anim.save(file_name, writer='pillow')
+    bar.finish()
     # plt.show()
     # plt.close()
